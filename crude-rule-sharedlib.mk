@@ -17,4 +17,4 @@ $(LOCAL_TARGET): PRIVATE_LDFLAGS := $(LOCAL_LDFLAGS)
 $(LOCAL_TARGET): PRIVATE_IMPORTS := $(LOCAL_IMPORTS)
 $(LOCAL_TARGET):
 	@mkdir -p $(dir $@) && echo '[1;33mSHAREDLIB [0;33m$@[0m'
-	$(CRUDE_AT)$(CXX) -shared -o $@ $(PRIVATE_OBJS) -L$(CRUDE_OUT)/lib -Wl,-rpath-link=$(CRUDE_OUT)/lib -Wl,--start-group $(PRIVATE_LDFLAGS) $(call import, $(PRIVATE_IMPORTS), LDFLAGS) -Wl,--end-group $(LDFLAGS)
+	$(CRUDE_AT)$(CXX) -shared -o $@ $(PRIVATE_OBJS) -L$(CRUDE_OUT)/lib -Wl,-rpath-link=$(CRUDE_OUT)/lib -Wl,--start-group $(PRIVATE_LDFLAGS) $(call import, LDFLAGS, $(PRIVATE_IMPORTS)) -Wl,--end-group $(LDFLAGS)

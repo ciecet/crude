@@ -38,8 +38,8 @@ define _end-target
     include $(CRUDE_DIR)/crude-common-clean.mk
     $$(LOCAL_TARGET): $$(LOCAL_SUBTARGETS)
     $$(LOCAL_TARGET) $$(LOCAL_SUBTARGETS): $$(LOCAL_MAKEFILE) $$(LOCAL_DEPENDS)
-    $$(LOCAL_TARGET) $$(LOCAL_SUBTARGETS): $$$$(call import, $$(LOCAL_IMPORTS), TARGET)
-    $$(LOCAL_TARGET) $$(LOCAL_SUBTARGETS): $$$$(call whole-import, $$(LOCAL_WHOLE_IMPORTS), TARGET)
+    $$(LOCAL_TARGET) $$(LOCAL_SUBTARGETS): $$$$(call import, TARGET, $$(LOCAL_IMPORTS))
+    $$(LOCAL_TARGET) $$(LOCAL_SUBTARGETS): $$$$(call whole-import, TARGET, $$(LOCAL_WHOLE_IMPORTS))
     $$(LOCAL_MODULE): $$(LOCAL_TARGET)
     $$(LOCAL_TARGET_ID): $$(LOCAL_TARGET)
     .PHONY: $$(LOCAL_LABELS)
@@ -49,6 +49,7 @@ define _end-target
     endif
     CRUDE_TARGETS += $$(LOCAL_TARGET_ID)
     EXPORT_TARGET := $$(LOCAL_TARGET)
+    EXPORT_WHOLE_IMPORTS := $$(LOCAL_IMPORTS) $$(EXPORT_IMPORTS)
     $$(foreach v,$$(LOCAL_LABELS),$$(if $$(filter $$(v),$$(CRUDE_LABELS)),,$$(eval CRUDE_LABELS += $$(v))))
     $$(foreach v,$$(LOCAL_LABELS),$$(eval CRUDE_$$(v)_TARGETS := $$(CRUDE_$$(v)_TARGETS) $$(LOCAL_TARGET_ID)))
     $$(foreach v,$$(filter EXPORT_%,$$(.VARIABLES)),$$(if $$($$(v)),$$(eval CRUDE_EXPORTS-$$(LOCAL_TARGET_ID)-$$(v:EXPORT_%=%) := $$($$(v)))))
@@ -65,32 +66,52 @@ define end-target
 endef
 
 define _expand_aux
-    $(1) $(foreach i,$(1),$(call _expand_aux,$(CRUDE_EXPORTS-$(i)-IMPORTS)))
+    $(1) \
+    $(foreach i, $(1), \
+        $(if $(filter $(i), $(CRUDE_LABELS)), \
+            $(call _expand_aux, $(CRUDE_$(i)_TARGETS),$(2)), \
+            $(call _expand_aux, $(CRUDE_EXPORTS-$(i)-$(2)),$(2)) \
+        ) \
+    )
+endef
+
+define _uniq
+    $(eval _ulist :=) \
+    $(foreach i, $(1), $(if $(filter $(i), $(_ulist)),,$(eval _ulist += $i))) \
+    $(_ulist)
 endef
 
 define _expand
-    $(eval _uniq :=)
-    $(foreach i,$(call _expand_aux,$(1)),$(if $(filter $i,$(_uniq)),,$(eval _uniq += $i)))
-    $(_uniq)
+    $(call _uniq, $(call _expand_aux, $(1),$(strip $(2))))
 endef
 
-# import(module list, variable)
+# _wgrep(rule, words)
+define _wgrep
+    $(if $(strip $(1)), \
+        $(shell for i in $(2); do echo "$$i"; done | egrep $(1)), \
+        $(2) \
+    )
+endef
+
+# (variable name, module/label list)
 define import
-    $(foreach i,$(call _expand,$(1)),$(CRUDE_EXPORTS-$(i)-$(firstword $(2))))
+    $(foreach i, \
+        $(call _expand, $(2), IMPORTS), \
+        $(CRUDE_EXPORTS-$(i)-$(strip $(1))) \
+    )
 endef
 
-# _filter(module list, rule)
-define _filter
-    $(if $(2),$(shell for i in $(1); do echo "$$i"; done | egrep $(2)),$(1))
-endef
-
-# whole-import(label list + regexp filter, variable)
+# whole-import(variable name, moduel/label list + regexp filter)
 define whole-import
-    $(call import
-        ,$(call _filter
-            ,$(foreach i, $(filter $(CRUDE_LABELS), $(1)), $(CRUDE_$(i)_TARGETS))
-            ,$(filter-out $(CRUDE_LABELS), $(1)))
-        ,$(2))
+    $(foreach i, \
+        $(call _wgrep, $(filter-out $(CRUDE_LABELS) $(CRUDE_TARGETS), $(2)), \
+            $(call _expand, \
+                $(filter $(CRUDE_LABELS) $(CRUDE_TARGETS), $(2)), \
+                WHOLE_IMPORTS \
+            ) \
+        ), \
+        $(CRUDE_EXPORTS-$(i)-$(strip $(1))) \
+    )
 endef
 
 # allow prerequsites to be evaluated later

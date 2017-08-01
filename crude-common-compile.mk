@@ -52,26 +52,26 @@ $(LOCAL_INTERMEDIATE)/%.o: PRIVATE_IMPORTS := $(LOCAL_IMPORTS)
 
 $(LOCAL_INTERMEDIATE)/%.o: $(LOCAL_PATH)/%.S
 	@mkdir -p $(dir $@) && echo '[1;37mOBJ [0;37m$@[0m'
-	$(CRUDE_AT)$(CC) -c $(PRIVATE_ASFLAGS) $(call import, $(PRIVATE_IMPORTS), ASFLAGS) $(ASFLAGS) -o $@ $<
+	$(CRUDE_AT)$(CC) -c $(PRIVATE_ASFLAGS) $(call import, ASFLAGS, $(PRIVATE_IMPORTS)) $(ASFLAGS) -o $@ $<
 
 $(LOCAL_INTERMEDIATE)/%.o: $(LOCAL_PATH)/%.c
 	@mkdir -p $(dir $@) && echo '[1;37mOBJ [0;37m$@[0m'
-	$(CRUDE_AT)$(CC) -c $(PRIVATE_CFLAGS) $(call import, $(PRIVATE_IMPORTS), CFLAGS) $(CFLAGS) -o $@ $<
+	$(CRUDE_AT)$(CC) -c $(PRIVATE_CFLAGS) $(call import, CFLAGS, $(PRIVATE_IMPORTS)) $(CFLAGS) -o $@ $<
 
 $(LOCAL_INTERMEDIATE)/%.o: $(LOCAL_PATH)/%.cpp
 	@mkdir -p $(dir $@) && echo '[1;37mOBJ [0;37m$@[0m'
-	$(CRUDE_AT)$(CXX) -c $(PRIVATE_CXXFLAGS) $(call import, $(PRIVATE_IMPORTS), CXXFLAGS) $(CXXFLAGS) -o $@ $<
+	$(CRUDE_AT)$(CXX) -c $(PRIVATE_CXXFLAGS) $(call import, CXXFLAGS, $(PRIVATE_IMPORTS)) $(CXXFLAGS) -o $@ $<
 
 $(LOCAL_INTERMEDIATE)/%.o: %.S
 	@mkdir -p $(dir $@) && echo '[1;37mOBJ [0;37m$@[0m'
-	$(CRUDE_AT)$(CC) -c $(PRIVATE_ASFLAGS) $(call import, $(PRIVATE_IMPORTS), ASFLAGS) $(ASFLAGS) -o $@ $<
+	$(CRUDE_AT)$(CC) -c $(PRIVATE_ASFLAGS) $(call import, ASFLAGS, $(PRIVATE_IMPORTS)) $(ASFLAGS) -o $@ $<
 
 $(LOCAL_INTERMEDIATE)/%.o: %.c
 	@mkdir -p $(dir $@) && echo '[1;37mOBJ [0;37m$@[0m'
-	$(CRUDE_AT)$(CC) -c $(PRIVATE_CFLAGS) $(call import, $(PRIVATE_IMPORTS), CFLAGS) $(CFLAGS) -o $@ $<
+	$(CRUDE_AT)$(CC) -c $(PRIVATE_CFLAGS) $(call import, CFLAGS, $(PRIVATE_IMPORTS)) $(CFLAGS) -o $@ $<
 
 $(LOCAL_INTERMEDIATE)/%.o: %.cpp
 	@mkdir -p $(dir $@) && echo '[1;37mOBJ [0;37m$@[0m'
-	$(CRUDE_AT)$(CXX) -c $(PRIVATE_CXXFLAGS) $(call import, $(PRIVATE_IMPORTS), CXXFLAGS) $(CXXFLAGS) -o $@ $<
+	$(CRUDE_AT)$(CXX) -c $(PRIVATE_CXXFLAGS) $(call import, CXXFLAGS, $(PRIVATE_IMPORTS)) $(CXXFLAGS) -o $@ $<
 
 -include $(LOCAL_OBJS:.o=.d)
